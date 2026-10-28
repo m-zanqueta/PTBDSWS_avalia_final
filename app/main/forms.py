@@ -6,3 +6,7 @@ class NameForm(FlaskForm):
     name = StringField('Qual é o seu nome?', validators=[DataRequired()])
     email = StringField('Qual é o seu email (Envio de notificação do novo usuário)?', validators=[DataRequired()])
     submit = SubmitField('Submit')
+
+class EditForm(FlaskForm):
+    name = StringField('Novo nome do usuário', validators=[DataRequired()])
+    submit = SubmitField('Salvar')

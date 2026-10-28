@@ -1,6 +1,6 @@
 import os
 import requests
-from flask import render_template, session, redirect, url_for, flash
+from flask import render_template, session, redirect, url_for, flash, request
 from . import main
 from .forms import NameForm
 from .. import db
@@ -72,3 +72,21 @@ def index():
                            name=session.get('name'),
                            known=session.get('known', False),
                            users=users)
+
+@main.route('/edit/<int:id>', methods=['POST'])
+def edit(id):
+    user = User.query.get_or_404(id)
+    new_name = request.form.get('username')
+    if new_name:
+        user.username = new_name
+        db.session.commit()
+        flash('Usuário atualizado com sucesso!')
+    return redirect(url_for('.index'))
+
+@main.route('/delete/<int:id>')
+def delete(id):
+    user = User.query.get_or_404(id)
+    db.session.delete(user)
+    db.session.commit()
+    flash('Usuário excluído com sucesso!')
+    return redirect(url_for('.index'))

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Editar Usuário</h1>
+</div>
+
+<form method="POST" class="form" role="form">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+        {{ form.name.label(class="control-label") }}
+        {{ form.name(class="form-control", style="max-width: 400px; display: inline-block; margin-right: 10px;") }}
+        {{ form.submit(class="btn btn-primary") }}
+        <a href="{{ url_for('.index') }}" class="btn btn-default">Cancelar</a>
+    </div>
+</form>
+{% endblock %}

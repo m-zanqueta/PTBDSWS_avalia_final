@@ -7,7 +7,7 @@
     
     {% if not known %}
     <p>Prazer em conhecê-lo!</p>
-    <p>E-mail enviado para o <strong>Administrador do sistema</strong>, notificando o cadastro de um novo usuário.</p>
+    <p>E-mail enviado para o <strong>Administrador do sistema</strong>, notificando o cadastro de novo usuário.</p>
     {% else %}
     <p>Bom vê-lo novamente!</p>
     {% endif %}
@@ -22,13 +22,28 @@
         <tr>
             <th>Nome do usuário</th>
             <th>Função</th>
+            <th>Ações</th>
         </tr>
     </thead>
     <tbody>
         {% for u in users %}
         <tr>
-            <td>{{ u.username }}</td>
+            <td>
+                {% if request.args.get('edit') == u.id|string %}
+                <form action="{{ url_for('.edit', id=u.id) }}" method="POST" style="display:inline;">
+                    <input type="text" name="username" value="{{ u.username }}" class="form-control" style="display:inline-block; width: 180px; height: 30px; padding: 2px 10px;" required>
+                    <a href="{{ url_for('.index') }}" class="btn btn-default btn-xs">Cancelar</a>
+                    <button type="submit" class="btn btn-primary btn-xs">Salvar</button>
+                </form>
+                {% else %}
+                    {{ u.username }}
+                    <a href="{{ url_for('.index', edit=u.id) }}" class="btn btn-default btn-xs" style="margin-left: 10px;">Editar</a>
+                {% endif %}
+            </td>
             <td>{% if u.role %}{{ u.role.name }}{% else %}User{% endif %}</td>
+            <td>
+                <a href="{{ url_for('.delete', id=u.id) }}" class="btn btn-danger btn-xs" onclick="return confirm('Deseja realmente excluir este usuário?');">Excluir</a>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
