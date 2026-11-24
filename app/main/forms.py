@@ -1,12 +1,9 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
+from wtforms import StringField, SelectField, SubmitField
 from wtforms.validators import DataRequired
 
-class NameForm(FlaskForm):
-    name = StringField('Qual é o seu nome?', validators=[DataRequired()])
-    email = StringField('Qual é o seu email (Envio de notificação do novo usuário)?', validators=[DataRequired()])
-    submit = SubmitField('Submit')
 
-class EditForm(FlaskForm):
-    name = StringField('Novo nome do usuário', validators=[DataRequired()])
-    submit = SubmitField('Salvar')
+class ProfessorForm(FlaskForm):
+    nome = StringField('Cadastre o novo Professor:', validators=[DataRequired()])
+    disciplina = SelectField('Disciplina associada:', coerce=int)
+    submit = SubmitField('Cadastrar')

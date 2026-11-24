@@ -1,92 +1,42 @@
-import os
-import requests
-from flask import render_template, session, redirect, url_for, flash, request
+from datetime import datetime
+from flask import render_template, redirect, url_for, flash
 from . import main
-from .forms import NameForm
+from .forms import ProfessorForm
 from .. import db
-from ..models import User
+from ..models import Professor, Disciplina
 
-api_key = os.environ.get('SENDGRID_API_KEY')
+PERMITIDAS = ['DSWA5', 'GPSA5', 'IHCA5', 'SODA5', 'PJIA5', 'TCOA5']
 
-def enviar_notificacao_sendgrid(novo_usuario, email_usuario):
-    url = "https://api.sendgrid.com/v3/mail/send"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
 
-    payload = {
-        "personalizations": [{
-            "to": [
-                {"email": "flaskaulasweb@zohomail.com"},
-                {"email": "m.zanqueta@aluno.ifsp.edu.br"},
-                {"email": email_usuario}
-            ]
-        }],
-        "from": {"email": "m.zanqueta@aluno.ifsp.edu.br"},
-        "subject": "Semana 12 - Novo Usuário Cadastrado",
-        "content": [{
-            "type": "text/html",
-            "value": f"""
-            <h3>Novo Cadastro na Aplicação</h3>
-            <p><strong>Prontuário do aluno:</strong> PT3035875</p>
-            <p><strong>Nome do aluno:</strong> Matheus Zanqueta</p>
-            <hr>
-            <p><strong>Novo usuário cadastrado:</strong> {novo_usuario}</p>
-            <p><strong>E-mail de contato:</strong> {email_usuario}</p>
-            """
-        }]
-    }
-
-    try:
-        response = requests.post(url, headers=headers, json=payload)
-        if response.status_code not in [200, 201, 202]:
-            flash(f"Erro do SendGrid ({response.status_code}): {response.text}")
-    except Exception as e:
-        flash(f"Falha de ligação à API: {str(e)}")
-
-@main.route('/', methods=['GET', 'POST'])
+@main.route('/')
 def index():
-    form = NameForm()
+    return render_template('index.html', current_time=datetime.utcnow())
+
+
+@main.route('/professores', methods=['GET', 'POST'])
+def professores():
+    form = ProfessorForm()
+    ordem = {n: i for i, n in enumerate(PERMITIDAS)}
+    form.disciplina.choices = sorted(
+        [(d.id, d.nome) for d in Disciplina.query.filter(Disciplina.nome.in_(PERMITIDAS))],
+        key=lambda c: ordem[c[1]])
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.name.data).first()
-
-        if user is None:
-            user = User(username=form.name.data)
-            db.session.add(user)
-            db.session.commit()
-
-            session['known'] = False
-            enviar_notificacao_sendgrid(user.username, form.email.data)
-        else:
-            session['known'] = True
-
-        session['name'] = form.name.data
-        form.name.data = ''
-        return redirect(url_for('.index'))
-
-    users = User.query.all()
-
-    return render_template('index.html',
-                           form=form,
-                           name=session.get('name'),
-                           known=session.get('known', False),
-                           users=users)
-
-@main.route('/edit/<int:id>', methods=['POST'])
-def edit(id):
-    user = User.query.get_or_404(id)
-    new_name = request.form.get('username')
-    if new_name:
-        user.username = new_name
+        db.session.add(Professor(nome=form.nome.data.strip(),
+                                 disciplina_id=form.disciplina.data))
         db.session.commit()
-        flash('Usuário atualizado com sucesso!')
-    return redirect(url_for('.index'))
+        flash('Professor cadastrado com sucesso!')
+        return redirect(url_for('.professores'))
+    lista = Professor.query.order_by(Professor.id).all()
+    return render_template('professores.html', form=form, professores=lista)
 
-@main.route('/delete/<int:id>')
-def delete(id):
-    user = User.query.get_or_404(id)
-    db.session.delete(user)
-    db.session.commit()
-    flash('Usuário excluído com sucesso!')
-    return redirect(url_for('.index'))
+
+@main.app_errorhandler(404)
+def nao_disponivel(e):
+    return render_template('nao_disponivel.html', current_time=datetime.utcnow()), 404
+
+
+@main.app_errorhandler(500)
+def erro_interno(e):
+    db.session.rollback()
+    return render_template('nao_disponivel.html', titulo='Erro interno do servidor',
+                           current_time=datetime.utcnow()), 500

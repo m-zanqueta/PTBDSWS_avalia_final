@@ -1,51 +1,10 @@
 {% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
 
 {% block page_content %}
 <div class="page-header">
-    <h1>Olá, {% if name %}{{ name }}{% else %}Desconhecido{% endif %}!</h1>
-    
-    {% if not known %}
-    <p>Prazer em conhecê-lo!</p>
-    <p>E-mail enviado para o <strong>Administrador do sistema</strong>, notificando o cadastro de novo usuário.</p>
-    {% else %}
-    <p>Bom vê-lo novamente!</p>
-    {% endif %}
+    <h1>Avaliação semestral</h1>
+    <h3>Aluno: Matheus Zanqueta Vitor</h3>
+    <h3>Prontuário: PT3035875</h3>
 </div>
-
-{{ wtf.quick_form(form) }}
-
-<br><br>
-<h3>Relação de usuários cadastrados</h3>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Nome do usuário</th>
-            <th>Função</th>
-            <th>Ações</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for u in users %}
-        <tr>
-            <td>
-                {% if request.args.get('edit') == u.id|string %}
-                <form action="{{ url_for('.edit', id=u.id) }}" method="POST" style="display:inline;">
-                    <input type="text" name="username" value="{{ u.username }}" class="form-control" style="display:inline-block; width: 180px; height: 30px; padding: 2px 10px;" required>
-                    <a href="{{ url_for('.index') }}" class="btn btn-default btn-xs">Cancelar</a>
-                    <button type="submit" class="btn btn-primary btn-xs">Salvar</button>
-                </form>
-                {% else %}
-                    {{ u.username }}
-                    <a href="{{ url_for('.index', edit=u.id) }}" class="btn btn-default btn-xs" style="margin-left: 10px;">Editar</a>
-                {% endif %}
-            </td>
-            <td>{% if u.role %}{{ u.role.name }}{% else %}User{% endif %}</td>
-            <td>
-                <a href="{{ url_for('.delete', id=u.id) }}" class="btn btn-danger btn-xs" onclick="return confirm('Deseja realmente excluir este usuário?');">Excluir</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<p>A data e hora local é {{ moment(current_time).format('LLL') }}.</p>
 {% endblock %}
